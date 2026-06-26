@@ -256,6 +256,13 @@ body{
 .glow-tl{position:absolute;top:-60px;left:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(139,124,247,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
 .glow-br{position:absolute;bottom:40px;right:-30px;width:160px;height:160px;background:radial-gradient(circle,rgba(109,213,200,.05) 0%,transparent 70%);pointer-events:none;z-index:0}
 .pg{position:relative;z-index:1}
+
+/* Combo select all/clear buttons */
+.combo-actions{display:flex;gap:8px;margin-bottom:8px}
+.combo-actions button{flex:1;padding:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);color:var(--t1);font-weight:600;cursor:pointer;transition:.12s}
+.combo-actions button:active{transform:scale(.96);background:var(--surface2)}
+.combo-actions .sel-all{color:var(--accent)}
+.combo-actions .clear-all{color:var(--t3)}
 </style>
 </head>
 <body>
@@ -415,6 +422,10 @@ body{
       <div class="csearch">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="combo-gift-search" placeholder="Поиск подарка…" autocomplete="off">
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button class="sel-all" onclick="selectAllCombo()" style="flex:1; padding:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--rsm); color:var(--accent); font-weight:600; cursor:pointer;">✅ Выбрать все</button>
+        <button class="clear-all" onclick="clearAllCombo()" style="flex:1; padding:8px; background:var(--surface); border:1px solid var(--border); border-radius:var(--rsm); color:var(--t3); font-weight:600; cursor:pointer;">✖ Очистить все</button>
       </div>
       <div class="ctable" id="combo-gift-list"></div>
       <div class="csel-bar"><div class="csel-name empty" id="combo-sel-label">Ничего не выбрано</div></div>
@@ -655,7 +666,7 @@ if(tg){tg.ready();tg.expand();tg.setHeaderColor('#06060c');tg.setBackgroundColor
   if(u){document.getElementById('p-name').textContent=[u.first_name,u.last_name].filter(Boolean).join(' ');
     document.getElementById('p-meta').textContent=u.username?`@${u.username}  ·  ID ${u.id}`:`ID ${u.id}`}}
 
-// === ALL 106 REAL GIFTS FROM peek.tg ===
+// === ALL REAL GIFTS FROM peek.tg ===
 const GIFTS=["Artisan Brick","Astral Shard","B-Day Candle","Berry Box","Big Year","Bling Binky","Bonded Ring","Bow Tie","Bunny Muffin","Candy Cane","Clover Pin","Cookie Heart","Crystal Ball","Cupid Charm","Desk Calendar","Diamond Ring","Durov's Cap","Easter Egg","Electric Skull","Eternal Candle","Eternal Rose","Evil Eye","Faith Amulet","Flying Broom","Fresh Socks","Gem Signet","Genie Lamp","Ginger Cookie","Hanging Star","Happy Brownie","Heart Locket","Heroic Helmet","Hex Pot","Holiday Drink","Homemade Cake","Hypno Lollipop","Ice Cream","Input Key","Instant Ramen","Ion Gem","Ionic Dryer","Jack in the Box","Jelly Bunny","Jester Hat","Jingle Bells","Jolly Chimp","Joyful Bundle","Khabib's Papakha","Kissed Frog","Light Sword","Lol Pop","Loot Bag","Love Candle","Love Potion","Low Rider","Lunar Snake","Lush Bouquet","Mad Pumpkin","Magic Potion","Mighty Arm","Mini Oscar","Money Pot","Moon Pendant","Mousse Cake","Nail Bracelet","Neko Helmet","Party Sparkler","Perfume Bottle","Pet Snake","Plush Pepe","Precious Peach","Pretty Posy","Record Player","Restless Jar","Sakura Flower","Santa Hat","Scared Cat","Sharp Tongue","Signet Ring","Skull Flower","Sky Stilettos","Sleigh Bell","Snake Box","Snoop Cigar","Snoop Dogg","Snow Globe","Snow Mittens","Spiced Wine","Spring Basket","Spy Agaric","Star Notepad","Stellar Rocket","Swag Bag","Swiss Watch","Tama Gadget","Top Hat","Toy Bear","Trapped Heart","Valentine Box","Vintage Cigar","Voodoo Doll","Westside Sign","Whip Cupcake","Winter Wreath","Witch Hat","Xmas Stocking"];
 
 let selectedGift=null;
@@ -810,7 +821,7 @@ function closeSub(){
 // === DEEP LINK HELPERS ===
 function getBotUsername(){
   const p=new URLSearchParams(window.location.search);
-  return p.get('bot')||'testprojectxNFTbot';
+  return p.get('bot')||'MamanMom67_bot';
 }
 function toApiName(n){return n.replace(/[\s\-\u2019']/g,'');}
 function deepLink(param){
@@ -1054,6 +1065,18 @@ function runCombo(){
   if(param.length>64){showToast('⚠ Слишком много коллекций — убери пару');if(tg)tg.HapticFeedback?.notificationOccurred('warning');return;}
   if(tg)tg.HapticFeedback?.impactOccurred('heavy');
   deepLink(param);
+}
+
+// Select All / Clear All для комбо
+function selectAllCombo(){
+  comboGifts = GIFTS.slice(0, COMBO_MAX);
+  renderComboGifts(document.getElementById('combo-gift-search').value);
+  if(tg)tg.HapticFeedback?.impactOccurred('light');
+}
+function clearAllCombo(){
+  comboGifts = [];
+  renderComboGifts(document.getElementById('combo-gift-search').value);
+  if(tg)tg.HapticFeedback?.impactOccurred('light');
 }
 
 const _comboSearchInp=document.getElementById('combo-gift-search');
