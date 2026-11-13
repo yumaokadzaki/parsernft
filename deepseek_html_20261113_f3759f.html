@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🎰 Лаки Слот</title>
+<style>
+  :root{
+    --gold:#ffd700;
+    --gold-dark:#b8860b;
+    --muted:#cbbde0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% -10%, #3a2054 0%, #1a0f28 45%, #08050e 100%);
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    color:#fff;padding:20px;user-select:none;
+  }
+
+  .machine{
+    position:relative;
+    width:100%;max-width:440px;
+    background:linear-gradient(165deg,#2e1c42,#150c22 70%);
+    border:2px solid var(--gold);
+    border-radius:26px;
+    padding:26px 22px 22px;
+    box-shadow:
+      0 0 0 6px rgba(212,175,55,.07),
+      0 25px 70px rgba(0,0,0,.75),
+      inset 0 1px 0 rgba(255,255,255,.09);
+  }
+
+  .sound-btn{
+    position:absolute;top:12px;right:12px;
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(212,175,55,.3);
+    color:#fff;font-size:15px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;
+  }
+  .sound-btn:hover{background:rgba(255,215,0,.15)}
+
+  h1{
+    font-size:25px;letter-spacing:2px;text-align:center;
+    background:linear-gradient(#fffbd6,#ffd700 45%,#b8860b);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 2px 8px rgba(255,215,0,.35));
+  }
+  .subtitle{
+    text-align:center;font-size:12px;letter-spacing:2px;
+    text-transform:uppercase;color:#8f7ba8;margin-top:6px;
+  }
+
+  /* ==== БАРАБАНЫ ==== */
+  .reels{
+    display:flex;gap:10px;justify-content:center;
+    margin-top:20px;padding:13px;
+    background:#08050e;border-radius:18px;
+    border:1px solid rgba(212,175,55,.3);
+    box-shadow:inset 0 8px 26px rgba(0,0,0,.95);
+  }
+  .reel{
+    flex:1;height:104px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:56px;line-height:1;
+    background:linear-gradient(180deg,#ffffff,#e6e4ee);
+    border-radius:12px;
+    box-shadow:inset 0 -5px 12px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.55);
+    transition:filter .2s;
+    overflow:hidden;
+  }
+  .reel.spinning{filter:blur(2px)}
+  .reel.pop{animation:pop .34s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{
+    0%{transform:scale(1.22)}
+    60%{transform:scale(.94)}
+    100%{transform:scale(1)}
+  }
+  .reel.win{animation:winglow .5s ease-in-out infinite alternate}
+  @keyframes winglow{
+    from{filter:drop-shadow(0 0 3px var(--gold))}
+    to{filter:drop-shadow(0 0 16px var(--gold)) drop-shadow(0 0 28px #ffb700)}
+  }
+
+  /* ==== СООБЩЕНИЕ ==== */
+  .message{
+    min-height:48px;margin:16px 0 6px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:600;text-align:center;
+    padding:9px 14px;border-radius:13px;
+    color:#9d8bb6;transition:.25s;
+  }
+  .message.win{
+    color:var(--gold);background:rgba(255,215,0,.1);
+    text-shadow:0 0 20px rgba(255,215,0,.8);
+  }
+  .message.lose{color:#ff8080;background:rgba(255,80,80,.07)}
+
+  /* ==== ПАНЕЛЬ ==== */
+  .hud{display:flex;gap:10px;margin-bottom:12px}
+  .hud-item{
+    flex:1;padding:8px 12px;border-radius:13px;
+    background:rgba(255,255,255,.045);
+    border:1px solid rgba(212,175,55,.22);
+    display:flex;flex-direction:column;gap:2px;
+  }
+  .hud-item .label{
+    font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#8f7ba8;
+  }
+  .hud-item .value{font-size:20px;font-weight:800;color:var(--gold)}
+
+  .bet-row{display:flex;align-items:center;gap:10px}
+  .bet-btn{
+    width:46px;height:46px;flex:0 0 46px;border-radius:50%;
+    border:1px solid rgba(212,175,55,.45);
+    background:rgba(255,255,255,.06);
+    color:var(--gold);font-size:24px;font-weight:700;line-height:1;
+    cursor:pointer;transition:.15s;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .bet-btn:hover:not(:disabled){background:rgba(255,215,0,.18);transform:scale(1.06)}
+  .bet-btn:disabled{opacity:.28;cursor:not-allowed}
+  .bet-display{
+    flex:1;text-align:center;font-size:13px;color:var(--muted);
+    padding:13px 0;border-radius:12px;
+    background:rgba(0,0,0,.32);
+    border:1px solid rgba(255,255,255,.06);
+  }
+  .bet-display b{color:var(--gold);font-size:17px}
+
+  .spin-btn{
+    width:100%;margin-top:14px;padding:17px;
+    font-family:inherit;font-size:19px;font-weight:800;letter-spacing:2px;
+    border:none;border-radius:15px;cursor:pointer;
+    color:#3a2400;text-transform:uppercase;
+    background:linear-gradient(180deg,#ffe95c,#ffd700 40%,#c99700);
+    box-shadow:0 6px 0 #7a5a00, 0 10px 26px rgba(255,215,0,.3);
+    transition:transform .1s, box-shadow .1s, filter .2s;
+  }
+  .spin-btn:hover:not(:disabled){filter:brightness(1.08)}
+  .spin-btn:active:not(:disabled){
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #7a5a00, 0 4px 14px rgba(255,215,0,.25);
+  }
+  .spin-btn:disabled{filter:grayscale(.55) brightness(.7);cursor:not-allowed}
+
+  /* ==== ТАБЛИЦА ВЫПЛАТ ==== */
+  .paytable{margin-top:16px;font-size:13px}
+  .paytable summary{
+    cursor:pointer;list-style:none;text-align:center;
+    color:#8f7ba8;padding:9px;border-radius:11px;
+    background:rgba(255,255,255,.04);transition:.2s;
+  }
+  .paytable summary:hover{color:var(--gold);background:rgba(255,215,0,.08)}
+  .paytable summary::-webkit-details-marker{display:none}
+  .pt-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;
+  }
+  .pt-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:7px 11px;border-radius:9px;background:rgba(255,255,255,.04);
+  }
+  .pt-item .m{color:var(--gold);font-weight:700}
+  .pt-full{grid-column:1/-1;justify-content:center;gap:8px;color:var(--muted)}
+
+  @media (max-width:400px){
+    .reel{height:88px;font-size:46px}
+    h1{font-size:21px}
+  }
+</style>
+</head>
+<body>
+
+<div class="machine">
+  <button class="sound-btn" id="soundBtn" title="Звук">🔊</button>
+
+  <h1>🎰 ЛАКИ СЛОТ 🎰</h1>
+  <div class="subtitle">Крути и побеждай</div>
+
+  <div class="reels">
+    <div class="reel" id="reel0">🍒</div>
+    <div class="reel" id="reel1">🍋</div>
+    <div class="reel" id="reel2">🍇</div>
+  </div>
+
+  <div class="message" id="message">Сделай ставку и жми «Крутить»!</div>
+
+  <div class="hud">
+    <div class="hud-item">
+      <span class="label">Баланс</span>
+      <span class="value" id="balance">1000</span>
+    </div>
+    <div class="hud-item">
+      <span class="label">Ставка</span>
+      <span class="value" id="bet">50</span>
+    </div>
+  </div>
+
+  <div class="bet-row">
+    <button class="bet-btn" id="betMinus">−</button>
+    <div class="bet-display">Размер ставки: <b id="betInline">50</b></div>
+    <button class="bet-btn" id="betPlus">+</button>
+  </div>
+
+  <button class="spin-btn" id="spinBtn">КРУТИТЬ</button>
+
+  <details class="paytable">
+    <summary>ℹ️ Таблица выплат</summary>
+    <div class="pt-grid" id="ptGrid"></div>
+  </details>
+</div>
+
+<script>
+(() => {
+  /* ================= ДАННЫЕ ================= */
+  const SYMBOLS = [
+    { emoji:'🍒', payout: 5  },
+    { emoji:'🍋', payout: 6  },
+    { emoji:'🍊', payout: 8  },
+    { emoji:'🍇', payout: 10 },
+    { emoji:'⭐', payout: 15 },
+    { emoji:'💎', payout: 25 },
+    { emoji:'7️⃣', payout: 50 },
+  ];
+  const PAIR_MULT = 1.5;
+  const BETS = [10, 25, 50, 100, 250];
+  const BONUS = 500;
+
+  /* ================= СОСТОЯНИЕ ================= */
+  let balance   = 1000;
+  let betIndex  = 2;
+  let spinning  = false;
+  let soundOn   = true;
+
+  /* ================= DOM ================= */
+  const reels     = [0,1,2].map(i => document.getElementById('reel' + i));
+  const balanceEl = document.getElementById('balance');
+  const betEl     = document.getElementById('bet');
+  const betInline = document.getElementById('betInline');
+  const betMinus  = document.getElementById('betMinus');
+  const betPlus   = document.getElementById('betPlus');
+  const spinBtn   = document.getElementById('spinBtn');
+  const messageEl = document.getElementById('message');
+  const soundBtn  = document.getElementById('soundBtn');
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const randomSymbol = () => SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+
+  /* ================= ЗВУК ================= */
+  let audioCtx = null;
+  function tone(freq, dur = 0.08, type = 'square', vol = 0.05, delay = 0) {
+    if (!soundOn) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime + delay;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(vol, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t); osc.stop(t + dur);
+    } catch (e) { /* звук не критичен */ }
+  }
+  const sfxTick  = () => tone(680, 0.06, 'square', 0.045);
+  const sfxLose  = () => tone(160, 0.22, 'sawtooth', 0.04);
+  const sfxSmall = () => { tone(700, 0.09, 'triangle', 0.06); tone(950, 0.11, 'triangle', 0.06, 0.09); };
+  const sfxWin   = () => {
+    [523, 659, 784, 1047, 1319].forEach((f, i) =>
+      tone(f, 0.16, 'triangle', 0.07, i * 0.09));
+  };
+
+  /* ================= UI ================= */
+  function updateUI() {
+    balanceEl.textContent = balance;
+    betEl.textContent = BETS[betIndex];
+    betInline.textContent = BETS[betIndex];
+
+    betMinus.disabled = spinning || betIndex === 0;
+    betPlus.disabled  = spinning || betIndex === BETS.length - 1;
+
+    if (!spinning) {
+      spinBtn.disabled = false;
+      spinBtn.textContent = balance < BETS[betIndex] ? '🎁 БОНУС +' + BONUS : 'КРУТИТЬ';
+    }
+  }
+
+  function showMessage(text, cls = '') {
+    messageEl.textContent = text;
+    messageEl.className = 'message' + (cls ? ' ' + cls : '');
+  }
+
+  /* ================= ВРАЩЕНИЕ ================= */
+  function startCycle(el) {
+    el.classList.add('spinning');
+    return setInterval(() => {
+      el.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].emoji;
+    }, 65);
+  }
+
+  async function spin() {
+    if (spinning) return;
+
+    // Банкрот — выдаём бонус вместо прокрута
+    if (balance < BETS[betIndex]) {
+      balance += BONUS;
+      updateUI();
+      showMessage('🎁 Бонус! +' + BONUS + ' кредитов', 'win');
+      sfxSmall();
+      return;
+    }
+
+    spinning = true;
+    const bet = BETS[betIndex];
+    balance -= bet;
+
+    reels.forEach(r => r.classList.remove('win', 'pop'));
+    spinBtn.disabled = true;
+    spinBtn.textContent = 'КРУТИМ...';
+    showMessage('Удача на подходе...');
+    updateUI();
+
+    // Заранее определяем результат (честный рандом)
+    const result = [randomSymbol(), randomSymbol(), randomSymbol()];
+
+    // Запускаем все барабаны
+    const intervals = reels.map(startCycle);
+
+    // Останавливаем по очереди
+    const stopAt = [650, 1200, 1750];
+    for (let i = 0; i < 3; i++) {
+      await sleep(i === 0 ? stopAt[0] : stopAt[i] - stopAt[i - 1]);
+      clearInterval(intervals[i]);
+      const el = reels[i];
+      el.classList.remove('spinning');
+      el.textContent = result[i].emoji;
+      void el.offsetWidth;            // перезапуск анимации
+      el.classList.add('pop');
+      sfxTick();
+    }
+
+    await sleep(180);
+    evaluate(result, bet);
+
+    spinning = false;
+    updateUI();
+  }
+
+  /* ================= ВЫИГРЫШ ================= */
+  function evaluate(result, bet) {
+    const [a, b, c] = result.map(s => s.emoji);
+    let win = 0;
+
+    if (a === b && b === c) {
+      // Три одинаковых
+      win = Math.round(bet * result[0].payout);
+      reels.forEach(r => r.classList.add('win'));
+      showMessage(`🎉 ДЖЕКПОТ! ${a}${a}${a} — выигрыш ${win}!`, 'win');
+      sfxWin();
+    } else {
+      // Пара
+      let idx = [];
+      if (a === b) idx = [0, 1];
+      else if (b === c) idx = [1, 2];
+      else if (a === c) idx = [0, 2];
+
+      if (idx.length) {
+        win = Math.round(bet * PAIR_MULT);
+        idx.forEach(i => reels[i].classList.add('win'));
+        showMessage(`✨ Пара! Выигрыш ${win} кредитов`, 'win');
+        sfxSmall();
+      } else {
+        showMessage('Не повезло... Попробуй ещё раз! 🍀', 'lose');
+        sfxLose();
+      }
+    }
+
+    if (win > 0) balance += win;
+  }
+
+  /* ================= УПРАВЛЕНИЕ СТАВКОЙ ================= */
+  betMinus.addEventListener('click', () => {
+    if (spinning || betIndex === 0) return;
+    betIndex--;
+    tone(420, 0.05, 'square', 0.03);
+    updateUI();
+  });
+
+  betPlus.addEventListener('click', () => {
+    if (spinning || betIndex === BETS.length - 1) return;
+    betIndex++;
+    tone(560, 0.05, 'square', 0.03);
+    updateUI();
+  });
+
+  /* ================= ЗВУК ВКЛ/ВЫКЛ ================= */
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
+    if (soundOn) tone(700, 0.08, 'triangle', 0.05);
+  });
+
+  /* ================= КНОПКА СПИН ================= */
+  spinBtn.addEventListener('click', spin);
+
+  /* Пробел / Enter тоже крутят */
+  document.addEventListener('keydown', e => {
+    if ((e.code === 'Space' || e.code === 'Enter') && document.activeElement !== spinBtn) {
+      e.preventDefault();
+      spin();
+    }
+  });
+
+  /* ================= ТАБЛИЦА ВЫПЛАТ ================= */
+  (function buildPaytable() {
+    const grid = document.getElementById('ptGrid');
+    SYMBOLS.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'pt-item';
+      div.innerHTML = `<span>${s.emoji}${s.emoji}${s.emoji}</span><span class="m">×${s.payout}</span>`;
+      grid.appendChild(div);
+    });
+    const pairDiv = document.createElement('div');
+    pairDiv.className = 'pt-item pt-full';
+    pairDiv.innerHTML = `<span>Любая пара</span><span class="m">×${PAIR_MULT}</span>`;
+    grid.appendChild(pairDiv);
+  })();
+
+  /* ================= СТАРТ ================= */
+  reels.forEach(r => r.textContent = randomSymbol().emoji);
+  updateUI();
+})();
+</script>
+</body>
+</html>
